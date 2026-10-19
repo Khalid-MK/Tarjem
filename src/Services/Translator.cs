@@ -67,7 +67,7 @@ namespace Tarjem.Services
         private static HttpClient CreateClient()
         {
             var c = new HttpClient { Timeout = TimeSpan.FromSeconds(12) };
-            c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Tarjem/1.0");
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Tarjem/1.1");
             return c;
         }
 
