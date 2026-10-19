@@ -52,8 +52,8 @@ namespace Tarjem
             _app = app;
             _edit = current.Clone();
 
-            // Never taller than the screen; the body scrolls instead.
-            MaxHeight = SystemParameters.WorkArea.Height - 24;
+            // A comfortable default height; the body scrolls and the window can be resized.
+            Height = Math.Min(Height, SystemParameters.WorkArea.Height - 40);
 
             HeaderIcon.Source = LoadIcon(64);
             Icon = LoadIcon(32);
