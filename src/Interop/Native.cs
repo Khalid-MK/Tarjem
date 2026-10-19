@@ -98,7 +98,7 @@ namespace Tarjem.Interop
         /// Sends Ctrl+&lt;key&gt; to the foreground window, first releasing any
         /// Alt/Shift/Win the user may still be holding from the hotkey.
         /// </summary>
-        public static void SendCtrlChord(ushort vk)
+        public static string SendCtrlChord(ushort vk)
         {
             var inputs = new List<INPUT>();
 
@@ -119,7 +119,9 @@ namespace Tarjem.Interop
             inputs.Add(Key(vk, true));
             if (!ctrlHeld) inputs.Add(Key(VK_LCONTROL, true));
 
-            SendInput((uint)inputs.Count, inputs.ToArray(), Marshal.SizeOf<INPUT>());
+            uint sent = SendInput((uint)inputs.Count, inputs.ToArray(), Marshal.SizeOf<INPUT>());
+            int err = sent == 0 ? Marshal.GetLastWin32Error() : 0;
+            return $"SendInput sent={sent}/{inputs.Count} err={err} ctrlHeld={ctrlHeld} altOrWin={altOrWin}";
         }
 
         private static INPUT Key(ushort vk, bool up)

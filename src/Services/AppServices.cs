@@ -29,6 +29,8 @@ namespace Tarjem.Services
         public double PopupWidth { get; set; } = 420;
         /// <summary>Show the original text above the translation.</summary>
         public bool ShowOriginal { get; set; } = true;
+        /// <summary>Write a trace of every hotkey press to %AppData%\Tarjem\trace.log.</summary>
+        public bool DebugLog { get; set; } = false;
 
         private static readonly JsonSerializerOptions Json = new()
         {
@@ -76,6 +78,7 @@ namespace Tarjem.Services
             StartWithWindows = o.StartWithWindows; ArabicTarget = o.ArabicTarget;
             OtherTarget = o.OtherTarget; FontSize = o.FontSize; Theme = o.Theme;
             AnchorMode = o.AnchorMode; PopupWidth = o.PopupWidth; ShowOriginal = o.ShowOriginal;
+            DebugLog = o.DebugLog;
         }
 
         public AppSettings Clone()
@@ -167,6 +170,20 @@ namespace Tarjem.Services
 
     internal static class Log
     {
+        public static bool TraceEnabled { get; set; }
+
+        public static void Trace(string message)
+        {
+            if (!TraceEnabled) return;
+            try
+            {
+                Directory.CreateDirectory(AppSettings.Folder);
+                File.AppendAllText(Path.Combine(AppSettings.Folder, "trace.log"),
+                    $"[{DateTime.Now:HH:mm:ss.fff}] {message}\n");
+            }
+            catch { }
+        }
+
         public static void Write(Exception ex)
         {
             try

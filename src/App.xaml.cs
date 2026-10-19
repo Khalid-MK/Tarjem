@@ -38,6 +38,7 @@ namespace Tarjem
             DispatcherUnhandledException += (_, ex) => { Log.Write(ex.Exception); ex.Handled = true; };
 
             _settings = AppSettings.Load(out bool firstRun);
+            Log.TraceEnabled = _settings.DebugLog;
             ThemeManager.Apply(_settings.Theme);
 
             _popup = new PopupWindow(_settings);
@@ -70,6 +71,7 @@ namespace Tarjem
                 }
 
                 Native.GetCursorPos(out var cursor);
+                Log.Trace($"hotkey: fg=0x{fg.ToInt64():X} {WindowInfo(fg)} cursor={cursor.X},{cursor.Y}");
 
                 // Look up where the selection is on screen while the text is being copied.
                 var locate = _settings.AnchorMode == "cursor"
@@ -81,10 +83,24 @@ namespace Tarjem
                 if (string.IsNullOrWhiteSpace(text))
                     _popup.OpenManual(cursor, "No selection — type or paste text, then Ctrl+Enter");
                 else
-                    _popup.OpenWithText(text, fg, cursor, await locate);
+                {
+                    var sel = await locate;
+                    Log.Trace(sel is { } r ? $"locate: {r.Left},{r.Top},{r.Right},{r.Bottom}" : "locate: none (using cursor)");
+                    _popup.OpenWithText(text, fg, cursor, sel);
+                }
             }
             catch (Exception ex) { Log.Write(ex); }
             finally { _grabbing = false; }
+        }
+
+        private static string WindowInfo(IntPtr hwnd)
+        {
+            try
+            {
+                Native.GetWindowThreadProcessId(hwnd, out uint pid);
+                return $"pid={pid} ({System.Diagnostics.Process.GetProcessById((int)pid).ProcessName})";
+            }
+            catch { return "pid=?"; }
         }
 
         internal void ApplyHotkey(bool announce)
@@ -170,6 +186,7 @@ namespace Tarjem
 
             _settings.CopyFrom(edited);
             _settings.Save();
+            Log.TraceEnabled = _settings.DebugLog;
             ThemeManager.Apply(_settings.Theme);
             _popup?.ApplySettings();
             StartupManager.Sync(_settings.StartWithWindows);

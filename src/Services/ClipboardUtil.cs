@@ -94,10 +94,11 @@ namespace Tarjem.Services
             while (Native.AnyNonCtrlModifierDown() && wait.ElapsedMilliseconds < 700)
                 await Task.Delay(15);
 
+            Log.Trace($"grab: waited {wait.ElapsedMilliseconds}ms for modifiers, stillDown={Native.AnyNonCtrlModifierDown()}");
             var snapshot = restoreClipboard ? ClipboardSnapshot.Capture() : null;
             uint before = Native.GetClipboardSequenceNumber();
 
-            Native.SendCtrlChord(Native.VK_C);
+            Log.Trace("grab: " + Native.SendCtrlChord(Native.VK_C) + $" seqBefore={before}");
 
             string? text = null;
             var sw = Stopwatch.StartNew();
@@ -111,6 +112,8 @@ namespace Tarjem.Services
                     break;
                 }
             }
+
+            Log.Trace($"grab: seqAfter={Native.GetClipboardSequenceNumber()} after {sw.ElapsedMilliseconds}ms, text={(text == null ? "null" : text.Length + " chars")}");
 
             // Only restore if we actually changed the clipboard.
             if (text != null && snapshot != null)
