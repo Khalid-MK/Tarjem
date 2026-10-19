@@ -28,7 +28,6 @@ namespace Tarjem.Services
         private const string OneCoreVoices = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech_OneCore\Voices";
         private const string ClassicVoices = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Speech\Voices";
         private const int SVSFlagsAsync = 1, SVSFPurgeBeforeSpeak = 2, SVSFIsNotXML = 16;
-        private const int SRSEDone = 1;
 
         private static readonly HttpClient Http = CreateClient();
 
@@ -181,7 +180,9 @@ namespace Tarjem.Services
         {
             try
             {
-                if ((int)((dynamic)_sapi!).Status.RunningState != SRSEDone) return;
+                // WaitUntilDone(0) = "finished?" without blocking. (Status.RunningState isn't
+                // reliable here: it reads 0, not SRSEDone, once a OneCore voice finishes.)
+                if (!(bool)((dynamic)_sapi!).WaitUntilDone(0)) return;
             }
             catch { /* treat as finished */ }
             _poll.Stop();

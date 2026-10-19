@@ -31,9 +31,12 @@ Run the exe and it sits in the tray. The exe isn't code-signed, so the first tim
 | `Ctrl+R` | Replace: paste the translation over the text you selected |
 | `Ctrl+S` | Flip direction (Arabic ⇄ English) |
 | `Ctrl+E` | Edit the original text and translate again |
+| `Ctrl+L` | Listen to the translation (press again to stop) |
+| `Ctrl+Shift+L` | Listen to the original text |
 
 - The translation is editable. **Copy** copies only the selected part if you selected something.
 - 📌 keeps the popup open when you click elsewhere.
+- Drag the popup's right edge (or the corner grip) to make it wider or narrower. The width is remembered.
 - Pressing the shortcut with nothing selected opens an empty popup to type or paste into.
 
 ### Settings
@@ -53,6 +56,13 @@ Open **Settings…** from the tray, or the ⚙ button in the popup.
   - Separate Arabic and English fonts, with a live preview. Only installed fonts are listed, so fonts like Cairo or Tajawal appear once you install them.
   - Theme: System / Dark / Light
   - Show or hide the original text
+- **Speech**:
+  - Voice: Windows voices, or Google's online voice
+  - Pick the Arabic and English voice, with a ▶ sample button for each
+  - Speed: Slower / Normal / Faster
+  - Use Google's voice when Windows has no voice for a language (on by default)
+  - Read the translation aloud automatically
+  - **Add voices** opens Windows' speech settings to install more voices
 - **Behavior**: put your clipboard back after grabbing the selection, and start with Windows.
 
 The settings file is `%AppData%\Tarjem\settings.json`. Setting `"DebugLog": true` writes a trace of every shortcut press to `trace.log` next to it.
@@ -66,6 +76,7 @@ The settings file is `%AppData%\Tarjem\settings.json`. Setting `"DebugLog": true
    2. the Win32 caret (classic edit controls)
    3. the mouse position, if both fail
 4. **Translation.** Google Translate's public endpoint (`translate.googleapis.com`, no API key), with MyMemory as a fallback.
+5. **Speech.** Windows' built-in voices through SAPI, including the newer voices like *Microsoft Hoda* (Arabic), with no extra install. For languages without a Windows voice it uses Google's online voice.
 
 ### Build
 
@@ -115,9 +126,12 @@ Output: `publish\Tarjem.exe`.
 | `Ctrl+R` | استبدال: يلصق الترجمة مكان النص الذي حددته |
 | `Ctrl+S` | عكس الاتجاه (عربي ⇄ إنجليزي) |
 | `Ctrl+E` | تعديل النص الأصلي وإعادة ترجمته |
+| `Ctrl+L` | الاستماع إلى الترجمة (اضغط مرة أخرى للإيقاف) |
+| `Ctrl+Shift+L` | الاستماع إلى النص الأصلي |
 
 - يمكنك تعديل الترجمة نفسها. زر **Copy** ينسخ الجزء المحدد فقط إن كنت قد حددت جزءًا منها.
 - زر 📌 يُبقي النافذة مفتوحة عند الضغط خارجها.
+- اسحب الحافة اليمنى للنافذة (أو المقبض في الركن) لتوسيعها أو تضييقها. يُحفَظ العرض تلقائيًا.
 - إذا ضغطت الاختصار دون تحديد أي نص، تُفتح نافذة فارغة لتكتب فيها أو تلصق نصًا.
 
 ### الإعدادات
@@ -137,6 +151,13 @@ Output: `publish\Tarjem.exe`.
   - خط للعربية وخط للإنجليزية، مع معاينة فورية. تظهر الخطوط المثبتة فقط، لذا تظهر خطوط مثل Cairo أو Tajawal بمجرد تثبيتها.
   - المظهر: System / Dark / Light
   - إظهار النص الأصلي أو إخفاؤه
+- **النطق**:
+  - الصوت: أصوات Windows، أو صوت Google عبر الإنترنت
+  - اختيار الصوت العربي والإنجليزي، مع زر ▶ لسماع عيّنة من كل صوت
+  - السرعة: أبطأ / عادية / أسرع
+  - استخدام صوت Google عندما لا يوجد صوت في Windows للغة (مفعَّل افتراضيًا)
+  - قراءة الترجمة بصوت عالٍ تلقائيًا
+  - زر **Add voices** يفتح إعدادات الكلام في Windows لتثبيت أصوات إضافية
 - **السلوك**: إرجاع محتوى الحافظة بعد أخذ النص، والتشغيل مع بدء Windows.
 
 ملف الإعدادات هو `%AppData%\Tarjem\settings.json`. إذا وضعت فيه `"DebugLog": true` فسيُسجِّل تتبعًا لكل ضغطة اختصار في ملف `trace.log` بجواره.
@@ -150,6 +171,7 @@ Output: `publish\Tarjem.exe`.
    2. مؤشر الكتابة في Win32 (حقول الإدخال التقليدية)
    3. موضع مؤشر الفأرة إذا فشل الاثنان
 4. **الترجمة.** عبر الواجهة العامة لترجمة Google (`translate.googleapis.com`، دون مفتاح API)، مع MyMemory بديلًا عند الفشل.
+5. **النطق.** أصوات Windows المدمجة عبر SAPI، بما فيها الأصوات الأحدث مثل *Microsoft Hoda* (العربية)، دون تثبيت أي شيء إضافي. وللغات التي لا يوجد لها صوت في Windows يُستخدم صوت Google عبر الإنترنت.
 
 ### البناء من المصدر
 
