@@ -21,6 +21,10 @@ namespace Tarjem.Services
         /// <summary>Target for anything that isn't Arabic (English, Russian, ...).</summary>
         public string OtherTarget { get; set; } = "ar";
         public double FontSize { get; set; } = 15;
+        /// <summary>Font for right-to-left text (Arabic, Persian, Urdu…).</summary>
+        public string ArabicFont { get; set; } = "Segoe UI";
+        /// <summary>Font for everything else (English, Russian…).</summary>
+        public string LatinFont { get; set; } = "Segoe UI";
         /// <summary>"system", "dark" or "light".</summary>
         public string Theme { get; set; } = "system";
         /// <summary>"selection" = open under the selected text, "cursor" = open at the mouse.</summary>
@@ -78,7 +82,7 @@ namespace Tarjem.Services
             StartWithWindows = o.StartWithWindows; ArabicTarget = o.ArabicTarget;
             OtherTarget = o.OtherTarget; FontSize = o.FontSize; Theme = o.Theme;
             AnchorMode = o.AnchorMode; PopupWidth = o.PopupWidth; ShowOriginal = o.ShowOriginal;
-            DebugLog = o.DebugLog;
+            DebugLog = o.DebugLog; ArabicFont = o.ArabicFont; LatinFont = o.LatinFont;
         }
 
         public AppSettings Clone()

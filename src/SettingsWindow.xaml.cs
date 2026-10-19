@@ -86,6 +86,9 @@ namespace Tarjem
             else WidthNormal.IsChecked = true;
 
             FontSizeText.Text = _edit.FontSize.ToString("0");
+            FillFonts(ArabicFontBox, FontCatalog.Arabic(_edit.ArabicFont), _edit.ArabicFont, "مرحبا");
+            FillFonts(LatinFontBox, FontCatalog.Latin(_edit.LatinFont), _edit.LatinFont, "Hello");
+            UpdatePreview();
 
             switch (_edit.Theme.ToLowerInvariant())
             {
@@ -116,8 +119,50 @@ namespace Tarjem
             }
         }
 
+        /// <summary>Each entry is drawn in its own font, with a short sample, so you can compare.</summary>
+        private static void FillFonts(ComboBox box, IReadOnlyList<string> fonts, string selected, string sample)
+        {
+            box.Items.Clear();
+            foreach (var name in fonts)
+            {
+                var item = new ComboBoxItem
+                {
+                    Content = $"{name}   ·   {sample}",
+                    Tag = name,
+                    FontFamily = FontCatalog.Family(name),
+                    FontSize = 13.5
+                };
+                box.Items.Add(item);
+                if (name.Equals(selected, StringComparison.OrdinalIgnoreCase)) box.SelectedItem = item;
+            }
+            if (box.SelectedItem == null && box.Items.Count > 0) box.SelectedIndex = 0;
+        }
+
+        private string SelectedFont(ComboBox box, string fallback) =>
+            (box.SelectedItem as ComboBoxItem)?.Tag as string ?? fallback;
+
+        private void Font_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_loading) return;
+            _edit.ArabicFont = SelectedFont(ArabicFontBox, _edit.ArabicFont);
+            _edit.LatinFont = SelectedFont(LatinFontBox, _edit.LatinFont);
+            UpdatePreview();
+        }
+
+        private void UpdatePreview()
+        {
+            PreviewArabic.FontFamily = FontCatalog.Family(_edit.ArabicFont);
+            PreviewLatin.FontFamily = FontCatalog.Family(_edit.LatinFont);
+            PreviewArabic.FontSize = PreviewLatin.FontSize = _edit.FontSize;
+            // The combo's closed state shows the chosen font too.
+            ArabicFontBox.FontFamily = FontCatalog.Family(_edit.ArabicFont);
+            LatinFontBox.FontFamily = FontCatalog.Family(_edit.LatinFont);
+        }
+
         private void Gather()
         {
+            _edit.ArabicFont = SelectedFont(ArabicFontBox, _edit.ArabicFont);
+            _edit.LatinFont = SelectedFont(LatinFontBox, _edit.LatinFont);
             _edit.Enabled = EnabledSwitch.IsChecked == true;
             _edit.ArabicTarget = (ArabicTargetBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "en";
             _edit.OtherTarget = (OtherTargetBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "ar";
@@ -224,6 +269,7 @@ namespace Tarjem
         {
             _edit.FontSize = Math.Clamp(Math.Round(_edit.FontSize) + delta, MinFont, MaxFont);
             FontSizeText.Text = _edit.FontSize.ToString("0");
+            UpdatePreview();
         }
 
         private void Theme_Checked(object sender, RoutedEventArgs e)

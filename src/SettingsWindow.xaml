@@ -158,6 +158,35 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+                <TextBlock Text="Arabic font" Style="{StaticResource Label}"/>
+                <ComboBox x:Name="ArabicFontBox" Grid.Column="1" Style="{StaticResource FlatCombo}" Width="226"
+                          SelectionChanged="Font_SelectionChanged"/>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="English font" Style="{StaticResource Label}"/>
+                <ComboBox x:Name="LatinFontBox" Grid.Column="1" Style="{StaticResource FlatCombo}" Width="226"
+                          SelectionChanged="Font_SelectionChanged"/>
+            </Grid>
+            <!-- Live preview of the chosen fonts and size -->
+            <Border Margin="0,0,0,12" Padding="12,9" CornerRadius="7"
+                    Background="{DynamicResource BoxBg}" BorderBrush="{DynamicResource CardBorder}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock x:Name="PreviewLatin" Text="The quick brown fox jumps over the lazy dog."
+                               TextWrapping="Wrap" Foreground="{DynamicResource Fg}"/>
+                    <TextBlock x:Name="PreviewArabic" Text="نصٌّ عربيٌّ للتجربة: الترجمة تظهر هنا بهذا الخط."
+                               FlowDirection="RightToLeft" TextWrapping="Wrap" Margin="0,6,0,0"
+                               Foreground="{DynamicResource Fg}"/>
+                </StackPanel>
+            </Border>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock Text="Theme" Style="{StaticResource Label}"/>
                 <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
                     <StackPanel Orientation="Horizontal">

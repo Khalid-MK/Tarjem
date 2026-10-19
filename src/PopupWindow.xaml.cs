@@ -43,6 +43,8 @@ namespace Tarjem
             SizeChanged += (_, _) => { if (IsVisible && !_userMoved) Place(); };
             PreviewKeyDown += OnPreviewKeyDown;
             SourceBox.TextChanged += (_, _) => ApplyDirection(SourceBox, LanguageDetector.IsArabicDominant(SourceBox.Text));
+            ApplyDirection(SourceBox, false);
+            ApplyDirection(TranslationBox, false);
 
             // The text boxes swallow the wheel even when they can't scroll; route it to the outer viewer.
             Body.PreviewMouseWheel += (_, e) =>
@@ -65,6 +67,8 @@ namespace Tarjem
         public void ApplySettings()
         {
             TranslationBox.FontSize = _settings.FontSize;
+            ApplyDirection(SourceBox, SourceBox.FlowDirection == FlowDirection.RightToLeft);
+            ApplyDirection(TranslationBox, TranslationBox.FlowDirection == FlowDirection.RightToLeft);
             Width = Math.Clamp(_settings.PopupWidth, 300, 900) + ShadowMargin * 2;
             UpdateSourceVisibility();
         }
@@ -347,9 +351,11 @@ namespace Tarjem
 
         // ---- Helpers --------------------------------------------------------------------
 
-        private static void ApplyDirection(TextBox box, bool rtl)
+        /// <summary>Sets reading direction and the matching font (Arabic font for RTL, English font otherwise).</summary>
+        private void ApplyDirection(TextBox box, bool rtl)
         {
             box.FlowDirection = rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+            box.FontFamily = FontCatalog.Family(rtl ? _settings.ArabicFont : _settings.LatinFont);
         }
 
         private void ShowStatus(string text, bool error = false, bool sticky = false)
