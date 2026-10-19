@@ -13,6 +13,8 @@ namespace Tarjem.Services
         /// <summary>e.g. "Ctrl+Alt+T", "Ctrl+Shift+Space", "Alt+Q", "F8".</summary>
         public string Hotkey { get; set; } = "Ctrl+Alt+T";
         public bool Enabled { get; set; } = true;
+        /// <summary>Swallow the shortcut completely so the app underneath doesn't also react to it.</summary>
+        public bool BlockOriginal { get; set; } = true;
         /// <summary>Put back whatever was on your clipboard after grabbing the selection.</summary>
         public bool RestoreClipboard { get; set; } = true;
         public bool StartWithWindows { get; set; } = false;
@@ -78,7 +80,7 @@ namespace Tarjem.Services
 
         public void CopyFrom(AppSettings o)
         {
-            Hotkey = o.Hotkey; Enabled = o.Enabled; RestoreClipboard = o.RestoreClipboard;
+            Hotkey = o.Hotkey; Enabled = o.Enabled; BlockOriginal = o.BlockOriginal; RestoreClipboard = o.RestoreClipboard;
             StartWithWindows = o.StartWithWindows; ArabicTarget = o.ArabicTarget;
             OtherTarget = o.OtherTarget; FontSize = o.FontSize; Theme = o.Theme;
             AnchorMode = o.AnchorMode; PopupWidth = o.PopupWidth; ShowOriginal = o.ShowOriginal;

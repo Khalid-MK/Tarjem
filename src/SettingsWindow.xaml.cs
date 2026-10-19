@@ -75,6 +75,7 @@ namespace Tarjem
 
             HotkeyBox.Text = _edit.Hotkey;
             EnabledSwitch.IsChecked = _edit.Enabled;
+            BlockOriginalSwitch.IsChecked = _edit.BlockOriginal;
 
             FillLanguages(ArabicTargetBox, _edit.ArabicTarget, exclude: "ar");
             FillLanguages(OtherTargetBox, _edit.OtherTarget, exclude: null);
@@ -164,6 +165,7 @@ namespace Tarjem
             _edit.ArabicFont = SelectedFont(ArabicFontBox, _edit.ArabicFont);
             _edit.LatinFont = SelectedFont(LatinFontBox, _edit.LatinFont);
             _edit.Enabled = EnabledSwitch.IsChecked == true;
+            _edit.BlockOriginal = BlockOriginalSwitch.IsChecked == true;
             _edit.ArabicTarget = (ArabicTargetBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "en";
             _edit.OtherTarget = (OtherTargetBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "ar";
             _edit.AnchorMode = AnchorCursor.IsChecked == true ? "cursor" : "selection";

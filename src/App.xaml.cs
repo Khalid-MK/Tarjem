@@ -116,7 +116,7 @@ namespace Tarjem
 
             if (_settings.Enabled)
             {
-                if (!_hotkeys.Register(hk))
+                if (!_hotkeys.Register(hk, _settings.BlockOriginal))
                     _tray.Notify($"{hk.Display} is already taken by another app. Pick another one in settings.", warning: true);
                 else if (announce)
                     _tray.Notify($"Running in the tray. Select any text and press {hk.Display}.");
@@ -178,7 +178,7 @@ namespace Tarjem
             if (!Hotkey.TryParse(edited.Hotkey, out var hk, out string? parseError))
                 return parseError ?? $"\"{edited.Hotkey}\" isn't a valid shortcut.";
 
-            if (edited.Enabled && _hotkeys != null && !_hotkeys.Register(hk))
+            if (edited.Enabled && _hotkeys != null && !_hotkeys.Register(hk, edited.BlockOriginal))
             {
                 ApplyHotkey(announce: false);   // put the old one back
                 return $"{hk.Display} is already used by another app. Try a different combination.";

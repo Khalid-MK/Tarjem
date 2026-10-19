@@ -89,6 +89,10 @@
             <TextBlock x:Name="HotkeyHint" Style="{StaticResource Hint}" Margin="0,-4,0,12"
                        Text="Click the box and press a combination, e.g. Ctrl+Alt+T or Alt+Q. F1–F24, Pause, Scroll Lock, Insert and the Menu key also work on their own. Esc cancels."/>
             <CheckBox x:Name="EnabledSwitch" Style="{StaticResource Switch}" Content="Shortcut enabled"/>
+            <CheckBox x:Name="BlockOriginalSwitch" Style="{StaticResource Switch}" Margin="0,0,0,4"
+                      Content="Block the key's own action"/>
+            <TextBlock Style="{StaticResource Hint}" Margin="0,0,0,12"
+                       Text="The app you're in won't also react to the shortcut — e.g. the Menu key won't open a right-click menu too. Uses a tiny keyboard hook on its own thread."/>
 
             <!-- TRANSLATION -->
             <TextBlock Text="TRANSLATION" Style="{StaticResource SectionTitle}"/>

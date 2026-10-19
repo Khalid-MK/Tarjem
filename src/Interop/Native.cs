@@ -84,6 +84,16 @@ namespace Tarjem.Interop
         private static readonly ushort[] NonCtrlModifiers =
             { VK_LMENU, VK_RMENU, VK_LSHIFT, VK_RSHIFT, VK_LWIN, VK_RWIN };
 
+        /// <summary>Tags keystrokes Tarjem injects so its own keyboard hook ignores them.</summary>
+        public static readonly IntPtr InjectMarker = new IntPtr(0x54524A4D); // "TRJM"
+
+        /// <summary>A harmless keystroke that stops a lone Alt/Win release from opening menus.</summary>
+        public static void SendDummyKey()
+        {
+            var inputs = new[] { Key(VK_UNASSIGNED, false), Key(VK_UNASSIGNED, true) };
+            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<INPUT>());
+        }
+
         public static bool IsDown(int vk) => (GetAsyncKeyState(vk) & 0x8000) != 0;
 
         /// <summary>True while the user is still physically holding Alt / Shift / Win.</summary>
@@ -141,7 +151,7 @@ namespace Tarjem.Interop
                         wScan = (ushort)MapVirtualKey(vk, 0),
                         dwFlags = flags,
                         time = 0,
-                        dwExtraInfo = IntPtr.Zero
+                        dwExtraInfo = InjectMarker
                     }
                 }
             };

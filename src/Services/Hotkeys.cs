@@ -108,6 +108,7 @@ namespace Tarjem.Services
         private const int HotkeyId = 0xB17E;
 
         private readonly HwndSource _sink;
+        private readonly HotkeyHook _hook;
         private bool _registered;
 
         public event Action? Pressed;
@@ -123,17 +124,31 @@ namespace Tarjem.Services
             };
             _sink = new HwndSource(p);
             _sink.AddHook(WndProc);
+
+            var dispatcher = System.Windows.Threading.Dispatcher.CurrentDispatcher;
+            _hook = new HotkeyHook(() => dispatcher.BeginInvoke(new Action(() => Pressed?.Invoke())));
         }
 
-        public bool Register(Hotkey hk)
+        /// <summary>
+        /// blockOriginal = true: a keyboard hook swallows the key completely (down, repeats and up),
+        /// so the app underneath never reacts to it. false: plain RegisterHotKey (the app may still
+        /// see the key-up). Falls back to RegisterHotKey if the hook can't be installed.
+        /// </summary>
+        public bool Register(Hotkey hk, bool blockOriginal)
         {
             Unregister();
+            if (blockOriginal)
+            {
+                if (_hook.Start(hk)) return true;
+                Log.Trace("hook: install failed, falling back to RegisterHotKey");
+            }
             _registered = Native.RegisterHotKey(_sink.Handle, HotkeyId, hk.Modifiers | Hotkey.MOD_NOREPEAT, hk.Vk);
             return _registered;
         }
 
         public void Unregister()
         {
+            _hook.Stop();
             if (_registered)
             {
                 Native.UnregisterHotKey(_sink.Handle, HotkeyId);
@@ -154,6 +169,7 @@ namespace Tarjem.Services
         public void Dispose()
         {
             Unregister();
+            _hook.Dispose();
             _sink.RemoveHook(WndProc);
             _sink.Dispose();
         }
