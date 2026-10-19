@@ -34,21 +34,27 @@ build.bat standalone   :: exe أكبر، يشتغل على أي جهاز
 
 ## Settings
 
-من الـ tray: **Edit settings…** ثم **Reload settings**.
-الملف: `%AppData%\Tarjem\settings.json`
+من الـ tray اختار **Settings…**، أو من زرار ⚙ في الـ popup:
 
-```json
-{
-  "Hotkey": "Ctrl+Alt+T",      // e.g. "Ctrl+Shift+Space", "Alt+Q", "F8"
-  "Enabled": true,
-  "RestoreClipboard": true,     // يرجّع الـ clipboard زي ما كان بعد ما ياخد النص
-  "StartWithWindows": false,
-  "ArabicTarget": "en",         // النص العربي يتترجم لـ
-  "OtherTarget": "ar",          // أي نص تاني يتترجم لـ
-  "FontSize": 15,
-  "Theme": "system"             // system | dark | light
-}
-```
+- **Shortcut**: دوس على الخانة واضغط الـ combination الجديدة. لو الـ shortcut ده واخده برنامج تاني، هيقولك قبل ما يحفظ.
+- **Translation**: النص العربي يتترجم لأنهي لغة، وأي لغة تانية تتترجم لأنهي لغة.
+- **Popup**:
+  - المكان: تحت الـ selection أو عند الماوس
+  - العرض: Compact / Normal / Wide
+  - حجم خط الترجمة
+  - الـ Theme
+  - إظهار النص الأصلي
+- **Behavior**: ترجيع الـ clipboard بعد ما ياخد النص، والتشغيل مع Windows.
+
+الملف نفسه موجود في `%AppData%\Tarjem\settings.json`. لو حطيت فيه `"DebugLog": true` هيكتب trace لكل ضغطة hotkey في `trace.log` جنب الملف.
+
+### Popup placement
+
+الـ popup بيفتح تحت النص المتحدد مباشرة. بيعرف مكانه بالترتيب ده:
+
+1. UI Automation `TextPattern`: Chrome، Edge، Word، WPF/WinUI، Notepad
+2. الـ Win32 caret: الـ edit controls القديمة
+3. لو الاتنين فشلوا: مكان الماوس
 
 ## How it works
 
