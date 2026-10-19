@@ -1,0 +1,101 @@
+<Window x:Class="Tarjem.PopupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tarjem"
+        Width="420" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+        FontFamily="Segoe UI" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <Border x:Name="Card" Margin="14" CornerRadius="10"
+            Background="{DynamicResource CardBg}"
+            BorderBrush="{DynamicResource CardBorder}" BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="3" Direction="270" Opacity="0.35"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- header -->
+                <RowDefinition Height="Auto"/>  <!-- source -->
+                <RowDefinition Height="Auto"/>  <!-- divider / progress -->
+                <RowDefinition Height="Auto"/>  <!-- translation -->
+                <RowDefinition Height="Auto"/>  <!-- footer -->
+            </Grid.RowDefinitions>
+
+            <!-- Header (drag to move) -->
+            <Grid x:Name="Header" Grid.Row="0" Background="Transparent" Margin="12,6,6,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="LangLabel" VerticalAlignment="Center" FontSize="11.5"
+                           Foreground="{DynamicResource SubFg}" TextTrimming="CharacterEllipsis"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="SwapBtn" Style="{StaticResource IconButton}" Content="&#xE8AB;"
+                            ToolTip="Flip direction  (Ctrl+S)" Click="Swap_Click"/>
+                    <Button x:Name="PinBtn" Style="{StaticResource IconButton}" Content="&#xE718;"
+                            ToolTip="Keep open" Click="Pin_Click"/>
+                    <Button x:Name="CloseBtn" Style="{StaticResource IconButton}" Content="&#xE711;"
+                            ToolTip="Close  (Esc)" Click="Close_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Original text (read-only until Edit) -->
+            <Grid Grid.Row="1" Margin="12,0,6,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="SourceBox" Style="{StaticResource GhostBox}"
+                         Foreground="{DynamicResource SubFg}" FontSize="12.5"
+                         IsReadOnly="True" AcceptsReturn="True" MaxHeight="52"/>
+                <Button x:Name="EditBtn" Grid.Column="1" Style="{StaticResource IconButton}"
+                        VerticalAlignment="Top" Content="&#xE70F;"
+                        ToolTip="Edit original text" Click="Edit_Click"/>
+            </Grid>
+
+            <!-- Divider + busy indicator -->
+            <Grid Grid.Row="2" Height="2">
+                <Border Height="1" VerticalAlignment="Center" Background="{DynamicResource CardBorder}"/>
+                <ProgressBar x:Name="Busy" IsIndeterminate="True" Visibility="Collapsed"
+                             Height="2" BorderThickness="0" Background="Transparent"
+                             Foreground="{DynamicResource Accent}"/>
+            </Grid>
+
+            <!-- Translation (editable) -->
+            <TextBox x:Name="TranslationBox" Grid.Row="3" Style="{StaticResource GhostBox}"
+                     Margin="12,10,12,6" MinHeight="24" MaxHeight="300" FontSize="15"
+                     AcceptsReturn="True"/>
+
+            <!-- Footer -->
+            <DockPanel Grid.Row="4" Margin="7,0,8,8" LastChildFill="True">
+                <Button x:Name="CopyBtn" DockPanel.Dock="Left" Style="{StaticResource ToolButton}"
+                        ToolTip="Copy translation  (Ctrl+Enter copies &amp; closes)" Click="Copy_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource IconFont}" FontSize="12" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                        <TextBlock Text="Copy" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="ReplaceBtn" DockPanel.Dock="Left" Style="{StaticResource ToolButton}"
+                        ToolTip="Paste the translation over your selection  (Ctrl+R)" Click="Replace_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE77F;" FontFamily="{StaticResource IconFont}" FontSize="12" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                        <TextBlock Text="Replace" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="TranslateBtn" DockPanel.Dock="Left" Style="{StaticResource ToolButton}"
+                        ToolTip="Translate the edited text  (Ctrl+Enter)" Click="Translate_Click" Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFont}" FontSize="12" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                        <TextBlock Text="Translate" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" HorizontalAlignment="Right"
+                           FontSize="11.5" Margin="6,0,4,0" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource SubFg}"/>
+            </DockPanel>
+        </Grid>
+    </Border>
+</Window>

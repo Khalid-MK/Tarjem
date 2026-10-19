@@ -1,0 +1,86 @@
+<Application x:Class="Tarjem.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <!-- Palette (replaced at startup by ThemeManager for light / dark) -->
+        <SolidColorBrush x:Key="CardBg" Color="#202327"/>
+        <SolidColorBrush x:Key="CardBorder" Color="#383D44"/>
+        <SolidColorBrush x:Key="Fg" Color="#ECEFF3"/>
+        <SolidColorBrush x:Key="SubFg" Color="#98A1AC"/>
+        <SolidColorBrush x:Key="HoverBg" Color="#2D3238"/>
+        <SolidColorBrush x:Key="PressBg" Color="#373D44"/>
+        <SolidColorBrush x:Key="Accent" Color="#4CC4A7"/>
+        <SolidColorBrush x:Key="BoxBg" Color="#17191C"/>
+        <SolidColorBrush x:Key="ErrorFg" Color="#FF7B70"/>
+
+        <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+        <!-- Small square icon button -->
+        <Style x:Key="IconButton" TargetType="Button">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource SubFg}"/>
+            <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource HoverBg}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource Fg}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource PressBg}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.4"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Icon + label button -->
+        <Style x:Key="ToolButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,2,0"/>
+        </Style>
+
+        <!-- Borderless text box that blends into the card -->
+        <Style x:Key="GhostBox" TargetType="TextBox">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource Fg}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource Fg}"/>
+            <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                          HorizontalScrollBarVisibility="Disabled"
+                                          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Application.Resources>
+</Application>
