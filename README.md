@@ -6,6 +6,15 @@
 - الأداة مش بتراقب الـ selection خالص. بتشتغل بس لما تدوس الزرار، فمفيش أي lag.
 - قاعدة في الـ system tray. تقدر توقفها مؤقتاً من هناك.
 
+## Download
+
+من صفحة [Releases](https://github.com/Khalid-MK/Tarjem/releases/latest):
+
+- **`Tarjem.exe`** (حوالي 0.3MB): محتاج [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0). لو مش متسطب، Windows هيطلب منك تنزله أول مرة.
+- **`Tarjem-standalone.exe`** (حوالي 63MB): بيشتغل على أي Windows 10/11 x64 من غير ما تسطب أي حاجة.
+
+شغّل الـ exe وهيقعد في الـ tray.
+
 ## Build
 
 محتاج .NET 8 SDK.
