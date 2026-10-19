@@ -57,7 +57,7 @@ namespace Tarjem.Services
             if (mods == 0 && !IsStandaloneKey(key))
             {
                 error = $"{keyText} on its own would stop you typing it anywhere. Add Ctrl, Alt or Win, " +
-                        "or use a key that types nothing: F1–F24, Pause, Scroll Lock or Insert.";
+                        "or use a key that types nothing: F1–F24, Pause, Scroll Lock, Insert or Menu.";
                 return false;
             }
 
@@ -79,12 +79,15 @@ namespace Tarjem.Services
 
         /// <summary>Keys that produce no text, so they're safe as a shortcut on their own (or with Shift).</summary>
         public static bool IsStandaloneKey(Key k) =>
-            (k >= Key.F1 && k <= Key.F24) || k is Key.Pause or Key.Scroll or Key.Insert;
+            (k >= Key.F1 && k <= Key.F24) || k is Key.Pause or Key.Scroll or Key.Insert or Key.Apps;
 
         private static bool TryParseKey(string s, out Key key)
         {
             key = Key.None;
             if (s.Length == 1 && char.IsDigit(s[0])) { key = Key.D0 + (s[0] - '0'); return true; }
+            // The context-menu key is "Apps" in WPF; accept the name people actually use.
+            if (s.Equals("Menu", StringComparison.OrdinalIgnoreCase) ||
+                s.Equals("ContextMenu", StringComparison.OrdinalIgnoreCase)) { key = Key.Apps; return true; }
             try
             {
                 var k = new KeyConverter().ConvertFromInvariantString(s);

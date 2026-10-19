@@ -204,6 +204,7 @@ namespace Tarjem
         private static string KeyName(Key k) => k switch
         {
             >= Key.D0 and <= Key.D9 => ((int)(k - Key.D0)).ToString(),
+            Key.Apps => "Menu",
             _ => k.ToString()
         };
 
