@@ -18,9 +18,11 @@ namespace Tarjem
         private TrayIcon? _tray;
         private PopupWindow? _popup;
         private SettingsWindow? _settingsWindow;
+        private SpeechService? _speech;
         private bool _grabbing;
 
         internal AppSettings Settings => _settings;
+        internal SpeechService Speech => _speech ??= new SpeechService(_settings);
         internal string HotkeyDisplay { get; private set; } = DefaultHotkey;
 
         protected override void OnStartup(StartupEventArgs e)
@@ -41,7 +43,7 @@ namespace Tarjem
             Log.TraceEnabled = _settings.DebugLog;
             ThemeManager.Apply(_settings.Theme);
 
-            _popup = new PopupWindow(_settings);
+            _popup = new PopupWindow(_settings, Speech);
             _hotkeys = new HotkeyManager();
             _hotkeys.Pressed += OnHotkey;
             _tray = new TrayIcon(this);

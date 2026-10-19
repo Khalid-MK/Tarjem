@@ -52,6 +52,9 @@ namespace Tarjem
             _app = app;
             _edit = current.Clone();
 
+            // Never taller than the screen; the body scrolls instead.
+            MaxHeight = SystemParameters.WorkArea.Height - 24;
+
             HeaderIcon.Source = LoadIcon(64);
             Icon = LoadIcon(32);
 
@@ -101,6 +104,14 @@ namespace Tarjem
             }
 
             ShowOriginalSwitch.IsChecked = _edit.ShowOriginal;
+
+            (_edit.SpeechEngine == "google" ? EngineGoogle : EngineWindows).IsChecked = true;
+            FillVoices(ArabicVoiceBox, "ar", _edit.ArabicVoice);
+            FillVoices(LatinVoiceBox, "en", _edit.LatinVoice);
+            (_edit.SpeechRate < 0 ? RateSlow : _edit.SpeechRate > 0 ? RateFast : RateNormal).IsChecked = true;
+            SpeechFallbackSwitch.IsChecked = _edit.SpeechOnlineFallback;
+            AutoSpeakSwitch.IsChecked = _edit.AutoSpeak;
+            UpdateVoiceControls();
             RestoreClipboardSwitch.IsChecked = _edit.RestoreClipboard;
             StartupSwitch.IsChecked = _edit.StartWithWindows;
 
@@ -162,8 +173,73 @@ namespace Tarjem
             LatinFontBox.FontFamily = FontCatalog.Family(_edit.LatinFont);
         }
 
+        // ---- Speech -------------------------------------------------------------------
+
+        private void FillVoices(ComboBox box, string lang, string selected)
+        {
+            box.Items.Clear();
+            var auto = new ComboBoxItem { Content = "Automatic", Tag = "" };
+            box.Items.Add(auto);
+            box.SelectedItem = auto;
+            foreach (var v in _app.Speech.Voices.Where(v => v.Lang == lang))
+            {
+                // "Microsoft Hoda - Arabic (Egypt)" → "Hoda · Arabic (Egypt)"
+                string label = v.Name.Replace("Microsoft ", "").Replace(" - ", "  ·  ");
+                var item = new ComboBoxItem { Content = label, Tag = v.Id };
+                box.Items.Add(item);
+                if (v.Id == selected) box.SelectedItem = item;
+            }
+        }
+
+        private void GatherSpeech()
+        {
+            _edit.SpeechEngine = EngineGoogle.IsChecked == true ? "google" : "windows";
+            _edit.ArabicVoice = (ArabicVoiceBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "";
+            _edit.LatinVoice = (LatinVoiceBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "";
+            _edit.SpeechRate = RateSlow.IsChecked == true ? -1 : RateFast.IsChecked == true ? 1 : 0;
+            _edit.SpeechOnlineFallback = SpeechFallbackSwitch.IsChecked == true;
+            _edit.AutoSpeak = AutoSpeakSwitch.IsChecked == true;
+        }
+
+        private void Engine_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!_loading) UpdateVoiceControls();
+        }
+
+        private void UpdateVoiceControls()
+        {
+            bool windows = EngineWindows.IsChecked == true;
+            ArabicVoiceBox.IsEnabled = LatinVoiceBox.IsEnabled = SpeechFallbackSwitch.IsEnabled = windows;
+
+            bool ar = _app.Speech.HasWindowsVoice("ar"), en = _app.Speech.HasWindowsVoice("en");
+            VoicesHint.Text = !windows
+                ? "Google's voice needs an internet connection."
+                : ar && en
+                    ? $"{_app.Speech.Voices.Count} Windows voices installed."
+                    : $"No {(ar ? "English" : en ? "Arabic" : "Arabic or English")} voice in Windows yet. You can add one, or let Google's voice cover it.";
+        }
+
+        private void TestArabicVoice_Click(object sender, RoutedEventArgs e) =>
+            TestVoice("مرحبًا، هذا صوت الترجمة باللغة العربية.", "ar");
+
+        private void TestLatinVoice_Click(object sender, RoutedEventArgs e) =>
+            TestVoice("Hello, this is how translations will sound in English.", "en");
+
+        private void TestVoice(string sample, string lang)
+        {
+            GatherSpeech();
+            _app.Speech.Speak(sample, lang, _edit);
+        }
+
+        private void AddVoices_Click(object sender, RoutedEventArgs e)
+        {
+            try { Process.Start(new ProcessStartInfo("ms-settings:speech") { UseShellExecute = true }); }
+            catch (Exception ex) { Log.Write(ex); }
+        }
+
         private void Gather()
         {
+            GatherSpeech();
             _edit.ArabicFont = SelectedFont(ArabicFontBox, _edit.ArabicFont);
             _edit.LatinFont = SelectedFont(LatinFontBox, _edit.LatinFont);
             _edit.Enabled = EnabledSwitch.IsChecked == true;
@@ -324,6 +400,7 @@ namespace Tarjem
 
         protected override void OnClosed(EventArgs e)
         {
+            _app.Speech.Stop();
             if (_recording) StopRecording();
             if (!_saved) ThemeManager.Apply(_app.Settings.Theme);   // undo the theme preview
             base.OnClosed(e);

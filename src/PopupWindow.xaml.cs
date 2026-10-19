@@ -20,8 +20,13 @@ namespace Tarjem
         private const double Gap = 6;             // space between the text and the card
         public const double MinCardWidth = 300, MaxCardWidth = 1200;
 
+        private const string SpeakerGlyph = "\uE767", StopGlyph = "\uE71A";
+
         private readonly AppSettings _settings;
+        private readonly SpeechService _speech;
         private readonly DispatcherTimer _statusTimer;
+        private string _sourceLang = "auto";
+        private string? _speaking;   // "translation" | "source" | null
 
         private IntPtr _targetHwnd;
         private Native.POINT _cursor;
@@ -31,17 +36,25 @@ namespace Tarjem
         private bool _pinned, _editing, _userMoved, _suppressHide, _resizing;
         private CancellationTokenSource? _cts;
 
-        public PopupWindow(AppSettings settings)
+        internal PopupWindow(AppSettings settings, SpeechService speech)
         {
             InitializeComponent();
             _settings = settings;
+            _speech = speech;
+            _speech.StateChanged += UpdateSpeechButtons;
+            _speech.Message += m => { if (IsVisible) ShowStatus(m, error: true, sticky: true); };
             ApplySettings();
 
             _statusTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2.2) };
             _statusTimer.Tick += (_, _) => { _statusTimer.Stop(); StatusText.Text = ""; };
 
             Deactivated += (_, _) => { if (!_pinned && !_suppressHide) Hide(); };
-            IsVisibleChanged += (_, _) => { if (!IsVisible) _cts?.Cancel(); };
+            IsVisibleChanged += (_, _) =>
+            {
+                if (IsVisible) return;
+                _cts?.Cancel();
+                if (_speaking != null) _speech.Stop();   // closing the popup stops reading
+            };
             SizeChanged += (_, _) => { if (IsVisible && !_userMoved && !_resizing) Place(); };
 
             foreach (var thumb in new[] { EdgeThumb, CornerThumb })
@@ -96,6 +109,7 @@ namespace Tarjem
 
             SourceBox.Text = text.Trim();
             TranslationBox.Text = "";
+            _sourceLang = "auto";
             ShowStatus("");
             ReplaceBtn.Visibility = Visibility.Visible;
 
@@ -149,6 +163,8 @@ namespace Tarjem
                 ApplyDirection(TranslationBox, LanguageDetector.IsRtl(_targetLang));
                 Body.ScrollToHome();
                 SetLangLabel(result.SourceLang);
+                _sourceLang = result.SourceLang;
+                if (_settings.AutoSpeak) Speak("translation");
             }
             catch (Exception ex) when (!cts.IsCancellationRequested)
             {
@@ -254,12 +270,45 @@ namespace Tarjem
         }
 
         private void UpdateSourceVisibility() =>
-            SourceBox.Visibility = _editing || _settings.ShowOriginal ? Visibility.Visible : Visibility.Collapsed;
+            SourceRow.Visibility = _editing || _settings.ShowOriginal ? Visibility.Visible : Visibility.Collapsed;
 
         private static void Highlight(Button b, bool on)
         {
             if (on) b.SetResourceReference(ForegroundProperty, "Accent");
             else b.ClearValue(ForegroundProperty);
+        }
+
+        // ---- Speech -----------------------------------------------------------------------
+
+        private void Listen_Click(object sender, RoutedEventArgs e) => ToggleSpeak("translation");
+        private void SourceListen_Click(object sender, RoutedEventArgs e) => ToggleSpeak("source");
+
+        private void ToggleSpeak(string which)
+        {
+            if (_speaking == which && _speech.IsSpeaking) { _speech.Stop(); return; }
+            Speak(which);
+        }
+
+        private void Speak(string which)
+        {
+            bool source = which == "source";
+            string text = source ? SourceBox.Text : TranslationBox.Text;
+            if (string.IsNullOrWhiteSpace(text)) return;
+            string lang = source ? _sourceLang : _targetLang;
+            _speaking = which;
+            _speech.Speak(text, lang);
+            UpdateSpeechButtons();
+        }
+
+        private void UpdateSpeechButtons()
+        {
+            if (!_speech.IsSpeaking) _speaking = null;
+            bool t = _speaking == "translation", s = _speaking == "source";
+            ListenGlyph.Text = t ? StopGlyph : SpeakerGlyph;
+            ListenLabel.Text = t ? "Stop" : "Listen";
+            SourceListenBtn.Content = s ? StopGlyph : SpeakerGlyph;
+            Highlight(ListenBtn, t);
+            Highlight(SourceListenBtn, s);
         }
 
         // ---- Resizing -----------------------------------------------------------------
@@ -306,6 +355,11 @@ namespace Tarjem
             else if (ctrl && e.Key == Key.S)
             {
                 FlipDirection();
+                e.Handled = true;
+            }
+            else if (ctrl && e.Key == Key.L)
+            {
+                ToggleSpeak((Keyboard.Modifiers & ModifierKeys.Shift) != 0 ? "source" : "translation");
                 e.Handled = true;
             }
             else if (ctrl && e.Key == Key.E)

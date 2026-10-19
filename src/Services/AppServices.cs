@@ -35,6 +35,17 @@ namespace Tarjem.Services
         public double PopupWidth { get; set; } = 420;
         /// <summary>Show the original text above the translation.</summary>
         public bool ShowOriginal { get; set; } = true;
+        /// <summary>"windows" = installed Windows voices, "google" = Google's online voice.</summary>
+        public string SpeechEngine { get; set; } = "windows";
+        /// <summary>Windows voice id for Arabic / English ("" = first matching voice).</summary>
+        public string ArabicVoice { get; set; } = "";
+        public string LatinVoice { get; set; } = "";
+        /// <summary>-1 slower, 0 normal, 1 faster.</summary>
+        public int SpeechRate { get; set; } = 0;
+        /// <summary>Use Google's online voice when Windows has no voice for the language.</summary>
+        public bool SpeechOnlineFallback { get; set; } = true;
+        /// <summary>Read the translation aloud as soon as it arrives.</summary>
+        public bool AutoSpeak { get; set; } = false;
         /// <summary>Write a trace of every hotkey press to %AppData%\Tarjem\trace.log.</summary>
         public bool DebugLog { get; set; } = false;
 
@@ -85,6 +96,8 @@ namespace Tarjem.Services
             OtherTarget = o.OtherTarget; FontSize = o.FontSize; Theme = o.Theme;
             AnchorMode = o.AnchorMode; PopupWidth = o.PopupWidth; ShowOriginal = o.ShowOriginal;
             DebugLog = o.DebugLog; ArabicFont = o.ArabicFont; LatinFont = o.LatinFont;
+            SpeechEngine = o.SpeechEngine; ArabicVoice = o.ArabicVoice; LatinVoice = o.LatinVoice;
+            SpeechRate = o.SpeechRate; SpeechOnlineFallback = o.SpeechOnlineFallback; AutoSpeak = o.AutoSpeak;
         }
 
         public AppSettings Clone()

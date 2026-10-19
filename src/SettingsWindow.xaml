@@ -56,6 +56,8 @@
             <TextBlock x:Name="ErrorText" Foreground="{DynamicResource ErrorFg}" TextWrapping="Wrap" FontSize="12"/>
         </Border>
 
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False"
+                      Padding="0,0,6,0" Margin="0,0,-6,0">
         <StackPanel>
             <!-- Invisible focus target used to end hotkey recording -->
             <Border x:Name="FocusSink" Focusable="True" Width="0" Height="0" FocusVisualStyle="{x:Null}"/>
@@ -203,10 +205,82 @@
             </Grid>
             <CheckBox x:Name="ShowOriginalSwitch" Style="{StaticResource Switch}" Content="Show the original text above the translation"/>
 
+            <!-- SPEECH -->
+            <TextBlock Text="SPEECH" Style="{StaticResource SectionTitle}"/>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Voice" Style="{StaticResource Label}"/>
+                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="EngineWindows" GroupName="Engine" Style="{StaticResource Segment}" Content="Windows voices" Checked="Engine_Checked"/>
+                        <RadioButton x:Name="EngineGoogle" GroupName="Engine" Style="{StaticResource Segment}" Content="Google (online)" Checked="Engine_Checked"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Arabic voice" Style="{StaticResource Label}"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <ComboBox x:Name="ArabicVoiceBox" Style="{StaticResource FlatCombo}" Width="226"/>
+                    <Button Style="{StaticResource IconButton}" Content="&#xE768;" Width="32" Height="32" Margin="4,0,0,0"
+                            ToolTip="Play a sample" Click="TestArabicVoice_Click"/>
+                </StackPanel>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="English voice" Style="{StaticResource Label}"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <ComboBox x:Name="LatinVoiceBox" Style="{StaticResource FlatCombo}" Width="226"/>
+                    <Button Style="{StaticResource IconButton}" Content="&#xE768;" Width="32" Height="32" Margin="4,0,0,0"
+                            ToolTip="Play a sample" Click="TestLatinVoice_Click"/>
+                </StackPanel>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Speed" Style="{StaticResource Label}"/>
+                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="RateSlow" GroupName="Rate" Style="{StaticResource Segment}" Content="Slower"/>
+                        <RadioButton x:Name="RateNormal" GroupName="Rate" Style="{StaticResource Segment}" Content="Normal"/>
+                        <RadioButton x:Name="RateFast" GroupName="Rate" Style="{StaticResource Segment}" Content="Faster"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <CheckBox x:Name="SpeechFallbackSwitch" Style="{StaticResource Switch}"
+                      Content="Use Google's online voice when Windows has none for the language"/>
+            <CheckBox x:Name="AutoSpeakSwitch" Style="{StaticResource Switch}" Content="Read the translation aloud automatically"/>
+            <Grid Margin="0,-4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="VoicesHint" Style="{StaticResource Hint}" VerticalAlignment="Center"/>
+                <Button Grid.Column="1" Style="{StaticResource ToolButton}" Margin="8,0,-9,0" Click="AddVoices_Click"
+                        ToolTip="Windows Settings → Time &amp; language → Speech">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE710;" FontFamily="{StaticResource IconFont}" FontSize="11" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                        <TextBlock Text="Add voices" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
             <!-- BEHAVIOR -->
             <TextBlock Text="BEHAVIOR" Style="{StaticResource SectionTitle}"/>
             <CheckBox x:Name="RestoreClipboardSwitch" Style="{StaticResource Switch}" Content="Put my clipboard back after grabbing the selection"/>
             <CheckBox x:Name="StartupSwitch" Style="{StaticResource Switch}" Content="Start with Windows" Margin="0"/>
         </StackPanel>
+        </ScrollViewer>
     </DockPanel>
 </Window>

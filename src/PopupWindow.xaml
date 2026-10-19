@@ -50,9 +50,18 @@
             <ScrollViewer x:Name="Body" Grid.Row="1" VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled" Focusable="False">
                 <StackPanel>
-                    <TextBox x:Name="SourceBox" Style="{StaticResource GhostBox}" Margin="12,0,12,8"
-                             Foreground="{DynamicResource SubFg}" FontSize="12.5"
-                             IsReadOnly="True" AcceptsReturn="True"/>
+                    <Grid x:Name="SourceRow" Margin="12,0,6,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="SourceBox" Style="{StaticResource GhostBox}"
+                                 Foreground="{DynamicResource SubFg}" FontSize="12.5"
+                                 IsReadOnly="True" AcceptsReturn="True"/>
+                        <Button x:Name="SourceListenBtn" Grid.Column="1" Style="{StaticResource IconButton}"
+                                VerticalAlignment="Top" Margin="4,-3,0,0" Content="&#xE767;"
+                                ToolTip="Listen to the original  (Ctrl+Shift+L)" Click="SourceListen_Click"/>
+                    </Grid>
 
                     <!-- Divider + busy indicator -->
                     <Grid Height="2">
@@ -95,6 +104,13 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="&#xE8C8;" FontFamily="{StaticResource IconFont}" FontSize="12" VerticalAlignment="Center" Margin="0,1,6,0"/>
                         <TextBlock Text="Copy" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                <Button x:Name="ListenBtn" DockPanel.Dock="Left" Style="{StaticResource ToolButton}"
+                        ToolTip="Listen to the translation  (Ctrl+L)" Click="Listen_Click">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="ListenGlyph" Text="&#xE767;" FontFamily="{StaticResource IconFont}" FontSize="12" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                        <TextBlock x:Name="ListenLabel" Text="Listen" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
                 <Button x:Name="ReplaceBtn" DockPanel.Dock="Left" Style="{StaticResource ToolButton}"
