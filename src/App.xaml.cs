@@ -175,8 +175,8 @@ namespace Tarjem
         /// <summary>Validates and applies settings from the settings window. Returns an error message, or null.</summary>
         internal string? SaveSettings(AppSettings edited)
         {
-            if (!Hotkey.TryParse(edited.Hotkey, out var hk))
-                return $"\"{edited.Hotkey}\" isn't a valid shortcut.";
+            if (!Hotkey.TryParse(edited.Hotkey, out var hk, out string? parseError))
+                return parseError ?? $"\"{edited.Hotkey}\" isn't a valid shortcut.";
 
             if (edited.Enabled && _hotkeys != null && !_hotkeys.Register(hk))
             {

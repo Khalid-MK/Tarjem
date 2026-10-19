@@ -87,7 +87,7 @@
                 </StackPanel>
             </Grid>
             <TextBlock x:Name="HotkeyHint" Style="{StaticResource Hint}" Margin="0,-4,0,12"
-                       Text="Click the box and press a combination, e.g. Ctrl+Alt+T or Alt+Q. Esc cancels."/>
+                       Text="Click the box and press a combination, e.g. Ctrl+Alt+T or Alt+Q. F1–F24, Pause, Scroll Lock and Insert also work on their own. Esc cancels."/>
             <CheckBox x:Name="EnabledSwitch" Style="{StaticResource Switch}" Content="Shortcut enabled"/>
 
             <!-- TRANSLATION -->

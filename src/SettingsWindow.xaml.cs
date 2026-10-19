@@ -181,12 +181,14 @@ namespace Tarjem
             parts.Add(KeyName(key));
             string combo = string.Join("+", parts);
 
-            if (!Hotkey.TryParse(combo, out _))
+            if (!Hotkey.TryParse(combo, out _, out string? error))
             {
-                HotkeyBox.Text = "Add Ctrl, Alt or Shift";
+                HotkeyBox.Text = "Not allowed — try again";
+                ShowError(error ?? "That shortcut can't be used.");
                 return;
             }
 
+            HideError();
             _edit.Hotkey = combo;
             EndRecordingFocus();   // ends recording and shows the new value
         }

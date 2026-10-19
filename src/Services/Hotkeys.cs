@@ -16,13 +16,22 @@ namespace Tarjem.Services
 
         private Hotkey(uint mods, uint vk, string display) { Modifiers = mods; Vk = vk; Display = display; }
 
-        public static bool TryParse(string? text, out Hotkey hotkey)
+        public static bool TryParse(string? text, out Hotkey hotkey) => TryParse(text, out hotkey, out _);
+
+        /// <summary>
+        /// Parses and validates a shortcut. RegisterHotKey takes the key away from every
+        /// other app, so a combination you'd normally type (a bare letter, Shift+letter…)
+        /// would stop you from typing it anywhere. Those are rejected with a reason.
+        /// </summary>
+        public static bool TryParse(string? text, out Hotkey hotkey, out string? error)
         {
             hotkey = default;
+            error = "Empty shortcut.";
             if (string.IsNullOrWhiteSpace(text)) return false;
 
             uint mods = 0;
             Key key = Key.None;
+            string keyText = "";
             var parts = text.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             foreach (var part in parts)
@@ -34,22 +43,43 @@ namespace Tarjem.Services
                     case "shift": mods |= MOD_SHIFT; break;
                     case "win": case "windows": mods |= MOD_WIN; break;
                     default:
+                        error = $"\"{text}\" isn't a valid shortcut.";
                         if (key != Key.None) return false;
                         if (!TryParseKey(part, out key)) return false;
+                        keyText = part;
                         break;
                 }
             }
 
-            if (key == Key.None) return false;
-            // A bare key is only allowed for F-keys, otherwise normal typing would be hijacked.
-            if (mods == 0 && !(key >= Key.F1 && key <= Key.F24)) return false;
+            if (key == Key.None) { error = "Add a key after the modifiers."; return false; }
+
+            // On its own: only keys that never type anything.
+            if (mods == 0 && !IsStandaloneKey(key))
+            {
+                error = $"{keyText} on its own would stop you typing it anywhere. Add Ctrl, Alt or Win, " +
+                        "or use a key that types nothing: F1–F24, Pause, Scroll Lock or Insert.";
+                return false;
+            }
+
+            // Shift only changes what a typing key produces (T → capital T, 1 → !, arrows → select),
+            // so Shift + that key would hijack normal typing too.
+            if (mods == MOD_SHIFT && !IsStandaloneKey(key))
+            {
+                error = $"Shift+{keyText} is something you type or use to select text. Add Ctrl, Alt or Win instead.";
+                return false;
+            }
 
             uint vk = (uint)KeyInterop.VirtualKeyFromKey(key);
-            if (vk == 0) return false;
+            if (vk == 0) { error = $"\"{text}\" isn't a valid shortcut."; return false; }
 
             hotkey = new Hotkey(mods, vk, string.Join("+", parts));
+            error = null;
             return true;
         }
+
+        /// <summary>Keys that produce no text, so they're safe as a shortcut on their own (or with Shift).</summary>
+        public static bool IsStandaloneKey(Key k) =>
+            (k >= Key.F1 && k <= Key.F24) || k is Key.Pause or Key.Scroll or Key.Insert;
 
         private static bool TryParseKey(string s, out Key key)
         {
