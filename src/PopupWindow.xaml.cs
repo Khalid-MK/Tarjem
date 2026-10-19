@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -17,6 +18,7 @@ namespace Tarjem
         private const string PinGlyph = "", PinnedGlyph = "";
         private const double ShadowMargin = 14;   // must match Card's Margin in XAML
         private const double Gap = 6;             // space between the text and the card
+        public const double MinCardWidth = 300, MaxCardWidth = 1200;
 
         private readonly AppSettings _settings;
         private readonly DispatcherTimer _statusTimer;
@@ -26,7 +28,7 @@ namespace Tarjem
         private Native.RECT? _selection;   // screen bounds of the selected text, when known
         private string _targetLang = "ar";
         private bool _autoTarget = true;   // false once the user flips direction manually
-        private bool _pinned, _editing, _userMoved, _suppressHide;
+        private bool _pinned, _editing, _userMoved, _suppressHide, _resizing;
         private CancellationTokenSource? _cts;
 
         public PopupWindow(AppSettings settings)
@@ -40,7 +42,14 @@ namespace Tarjem
 
             Deactivated += (_, _) => { if (!_pinned && !_suppressHide) Hide(); };
             IsVisibleChanged += (_, _) => { if (!IsVisible) _cts?.Cancel(); };
-            SizeChanged += (_, _) => { if (IsVisible && !_userMoved) Place(); };
+            SizeChanged += (_, _) => { if (IsVisible && !_userMoved && !_resizing) Place(); };
+
+            foreach (var thumb in new[] { EdgeThumb, CornerThumb })
+            {
+                thumb.DragStarted += (_, _) => _resizing = true;
+                thumb.DragDelta += Resize_DragDelta;
+                thumb.DragCompleted += Resize_DragCompleted;
+            }
             PreviewKeyDown += OnPreviewKeyDown;
             SourceBox.TextChanged += (_, _) => ApplyDirection(SourceBox, LanguageDetector.IsArabicDominant(SourceBox.Text));
             ApplyDirection(SourceBox, false);
@@ -69,7 +78,7 @@ namespace Tarjem
             TranslationBox.FontSize = _settings.FontSize;
             ApplyDirection(SourceBox, SourceBox.FlowDirection == FlowDirection.RightToLeft);
             ApplyDirection(TranslationBox, TranslationBox.FlowDirection == FlowDirection.RightToLeft);
-            Width = Math.Clamp(_settings.PopupWidth, 300, 900) + ShadowMargin * 2;
+            Width = Math.Clamp(_settings.PopupWidth, MinCardWidth, MaxCardWidth) + ShadowMargin * 2;
             UpdateSourceVisibility();
         }
 
@@ -251,6 +260,25 @@ namespace Tarjem
         {
             if (on) b.SetResourceReference(ForegroundProperty, "Accent");
             else b.ClearValue(ForegroundProperty);
+        }
+
+        // ---- Resizing -----------------------------------------------------------------
+
+        private void Resize_DragDelta(object sender, DragDeltaEventArgs e)
+        {
+            double maxForScreen = SystemParameters.VirtualScreenWidth;
+            double card = Math.Clamp(Width - ShadowMargin * 2 + e.HorizontalChange,
+                                     MinCardWidth, Math.Min(MaxCardWidth, maxForScreen));
+            Width = card + ShadowMargin * 2;
+        }
+
+        private void Resize_DragCompleted(object sender, DragCompletedEventArgs e)
+        {
+            _resizing = false;
+            _settings.PopupWidth = Math.Round(Width - ShadowMargin * 2);
+            _settings.Save();   // the next popup opens at this width
+            ShowStatus($"Width {_settings.PopupWidth:0}px — saved");
+            if (!_userMoved) Place();
         }
 
         // ---- Keyboard ---------------------------------------------------------------

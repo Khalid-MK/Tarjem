@@ -82,9 +82,11 @@ namespace Tarjem
 
             (_edit.AnchorMode == "cursor" ? AnchorCursor : AnchorSelection).IsChecked = true;
 
-            if (_edit.PopupWidth <= (WidthCompactValue + WidthNormalValue) / 2) WidthCompact.IsChecked = true;
-            else if (_edit.PopupWidth >= (WidthNormalValue + WidthWideValue) / 2) WidthWide.IsChecked = true;
-            else WidthNormal.IsChecked = true;
+            // A width dragged in the popup that isn't a preset leaves none selected ("Custom").
+            WidthCompact.IsChecked = Math.Abs(_edit.PopupWidth - WidthCompactValue) < 1;
+            WidthNormal.IsChecked = Math.Abs(_edit.PopupWidth - WidthNormalValue) < 1;
+            WidthWide.IsChecked = Math.Abs(_edit.PopupWidth - WidthWideValue) < 1;
+            UpdateWidthHint();
 
             FontSizeText.Text = _edit.FontSize.ToString("0");
             FillFonts(ArabicFontBox, FontCatalog.Arabic(_edit.ArabicFont), _edit.ArabicFont, "مرحبا");
@@ -169,14 +171,29 @@ namespace Tarjem
             _edit.ArabicTarget = (ArabicTargetBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "en";
             _edit.OtherTarget = (OtherTargetBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "ar";
             _edit.AnchorMode = AnchorCursor.IsChecked == true ? "cursor" : "selection";
-            _edit.PopupWidth = WidthCompact.IsChecked == true ? WidthCompactValue
-                             : WidthWide.IsChecked == true ? WidthWideValue
-                             : WidthNormalValue;
+            if (WidthCompact.IsChecked == true) _edit.PopupWidth = WidthCompactValue;
+            else if (WidthNormal.IsChecked == true) _edit.PopupWidth = WidthNormalValue;
+            else if (WidthWide.IsChecked == true) _edit.PopupWidth = WidthWideValue;
+            // none checked = keep the custom width dragged in the popup
             _edit.Theme = SelectedTheme();
             _edit.ShowOriginal = ShowOriginalSwitch.IsChecked == true;
             _edit.RestoreClipboard = RestoreClipboardSwitch.IsChecked == true;
             _edit.StartWithWindows = StartupSwitch.IsChecked == true;
         }
+
+        private void Width_Checked(object sender, RoutedEventArgs e)
+        {
+            if (_loading) return;
+            if (WidthCompact.IsChecked == true) _edit.PopupWidth = WidthCompactValue;
+            else if (WidthNormal.IsChecked == true) _edit.PopupWidth = WidthNormalValue;
+            else if (WidthWide.IsChecked == true) _edit.PopupWidth = WidthWideValue;
+            UpdateWidthHint();
+        }
+
+        private void UpdateWidthHint() =>
+            WidthHint.Text = (WidthCompact.IsChecked == true || WidthNormal.IsChecked == true || WidthWide.IsChecked == true)
+                ? $"{_edit.PopupWidth:0}px. You can also drag the popup's right edge; it remembers the width."
+                : $"Custom: {_edit.PopupWidth:0}px (set by dragging the popup's edge).";
 
         private string SelectedTheme() =>
             ThemeDark.IsChecked == true ? "dark" : ThemeLight.IsChecked == true ? "light" : "system";

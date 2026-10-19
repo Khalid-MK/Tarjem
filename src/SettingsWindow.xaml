@@ -136,12 +136,13 @@
                 <TextBlock Text="Width" Style="{StaticResource Label}"/>
                 <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
                     <StackPanel Orientation="Horizontal">
-                        <RadioButton x:Name="WidthCompact" GroupName="Width" Style="{StaticResource Segment}" Content="Compact"/>
-                        <RadioButton x:Name="WidthNormal" GroupName="Width" Style="{StaticResource Segment}" Content="Normal"/>
-                        <RadioButton x:Name="WidthWide" GroupName="Width" Style="{StaticResource Segment}" Content="Wide"/>
+                        <RadioButton x:Name="WidthCompact" GroupName="Width" Style="{StaticResource Segment}" Checked="Width_Checked" Content="Compact"/>
+                        <RadioButton x:Name="WidthNormal" GroupName="Width" Style="{StaticResource Segment}" Checked="Width_Checked" Content="Normal"/>
+                        <RadioButton x:Name="WidthWide" GroupName="Width" Style="{StaticResource Segment}" Checked="Width_Checked" Content="Wide"/>
                     </StackPanel>
                 </Border>
             </Grid>
+            <TextBlock x:Name="WidthHint" Style="{StaticResource Hint}" Margin="0,-6,0,12" TextAlignment="Right"/>
             <Grid Style="{StaticResource Row}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>

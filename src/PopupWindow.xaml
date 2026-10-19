@@ -67,8 +67,29 @@
                 </StackPanel>
             </ScrollViewer>
 
+            <!-- Resize handles: drag the right edge or the corner to change the width (remembered). -->
+            <Thumb x:Name="EdgeThumb" Grid.RowSpan="3" HorizontalAlignment="Right" Width="8" Margin="0,10,0,10"
+                   Cursor="SizeWE" ToolTip="Drag to change the width">
+                <Thumb.Template>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Thumb.Template>
+            </Thumb>
+            <Thumb x:Name="CornerThumb" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   Width="16" Height="16" Margin="0,0,1,1" Cursor="SizeWE" ToolTip="Drag to change the width">
+                <Thumb.Template>
+                    <ControlTemplate TargetType="Thumb">
+                        <Grid Background="Transparent">
+                            <Path Data="M 13,4 L 4,13 M 13,8 L 8,13 M 13,12 L 12,13" Stroke="{DynamicResource SubFg}"
+                                  StrokeThickness="1.2" Opacity="0.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Thumb.Template>
+            </Thumb>
+
             <!-- Footer -->
-            <DockPanel Grid.Row="2" Margin="7,0,8,8" LastChildFill="True">
+            <DockPanel Grid.Row="2" Margin="7,0,18,8" LastChildFill="True">
                 <Button x:Name="CopyBtn" DockPanel.Dock="Left" Style="{StaticResource ToolButton}"
                         ToolTip="Copy translation  (Ctrl+Enter copies &amp; closes)" Click="Copy_Click">
                     <StackPanel Orientation="Horizontal">
