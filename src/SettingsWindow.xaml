@@ -227,7 +227,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="Arabic voice" Style="{StaticResource Label}"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <ComboBox x:Name="ArabicVoiceBox" Style="{StaticResource FlatCombo}" Width="226"/>
+                    <ComboBox x:Name="ArabicVoiceBox" Style="{StaticResource FlatCombo}" Width="190"/>
                     <Button Style="{StaticResource IconButton}" Content="&#xE768;" Width="32" Height="32" Margin="4,0,0,0"
                             ToolTip="Play a sample" Click="TestArabicVoice_Click"/>
                 </StackPanel>
@@ -239,7 +239,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="English voice" Style="{StaticResource Label}"/>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <ComboBox x:Name="LatinVoiceBox" Style="{StaticResource FlatCombo}" Width="226"/>
+                    <ComboBox x:Name="LatinVoiceBox" Style="{StaticResource FlatCombo}" Width="190"/>
                     <Button Style="{StaticResource IconButton}" Content="&#xE768;" Width="32" Height="32" Margin="4,0,0,0"
                             ToolTip="Play a sample" Click="TestLatinVoice_Click"/>
                 </StackPanel>
@@ -259,7 +259,7 @@
                 </Border>
             </Grid>
             <CheckBox x:Name="SpeechFallbackSwitch" Style="{StaticResource Switch}"
-                      Content="Use Google's online voice when Windows has none for the language"/>
+                      Content="Use Google's voice if Windows has none for a language"/>
             <CheckBox x:Name="AutoSpeakSwitch" Style="{StaticResource Switch}" Content="Read the translation aloud automatically"/>
             <Grid Margin="0,-4,0,0">
                 <Grid.ColumnDefinitions>
