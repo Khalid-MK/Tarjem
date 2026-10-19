@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using Tarjem.Interop;
 using Tarjem.Services;
@@ -16,6 +17,7 @@ namespace Tarjem
         private HotkeyManager? _hotkeys;
         private TrayIcon? _tray;
         private PopupWindow? _popup;
+        private SettingsWindow? _settingsWindow;
         private bool _grabbing;
 
         internal AppSettings Settings => _settings;
@@ -45,6 +47,9 @@ namespace Tarjem
 
             ApplyHotkey(announce: firstRun);
             StartupManager.Sync(_settings.StartWithWindows);
+
+            if (Array.Exists(e.Args, a => a.Equals("--settings", StringComparison.OrdinalIgnoreCase)))
+                OpenSettings();
         }
 
         // ---- Hotkey ------------------------------------------------------------
@@ -65,12 +70,18 @@ namespace Tarjem
                 }
 
                 Native.GetCursorPos(out var cursor);
+
+                // Look up where the selection is on screen while the text is being copied.
+                var locate = _settings.AnchorMode == "cursor"
+                    ? Task.FromResult<Native.RECT?>(null)
+                    : SelectionLocator.LocateAsync(fg);
+
                 string? text = await SelectionGrabber.GetSelectedTextAsync(_settings.RestoreClipboard);
 
                 if (string.IsNullOrWhiteSpace(text))
                     _popup.OpenManual(cursor, "No selection — type or paste text, then Ctrl+Enter");
                 else
-                    _popup.OpenWithText(text, fg, cursor);
+                    _popup.OpenWithText(text, fg, cursor, await locate);
             }
             catch (Exception ex) { Log.Write(ex); }
             finally { _grabbing = false; }
@@ -130,6 +141,46 @@ namespace Tarjem
             Native.GetCursorPos(out var cursor);
             _popup?.OpenManual(cursor, null);
         }
+
+        internal void OpenSettings()
+        {
+            if (_settingsWindow != null)
+            {
+                if (_settingsWindow.WindowState == WindowState.Minimized) _settingsWindow.WindowState = WindowState.Normal;
+                _settingsWindow.Activate();
+                return;
+            }
+            _settingsWindow = new SettingsWindow(this, _settings);
+            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            _settingsWindow.Show();
+            _settingsWindow.Activate();
+        }
+
+        /// <summary>Validates and applies settings from the settings window. Returns an error message, or null.</summary>
+        internal string? SaveSettings(AppSettings edited)
+        {
+            if (!Hotkey.TryParse(edited.Hotkey, out var hk))
+                return $"\"{edited.Hotkey}\" isn't a valid shortcut.";
+
+            if (edited.Enabled && _hotkeys != null && !_hotkeys.Register(hk))
+            {
+                ApplyHotkey(announce: false);   // put the old one back
+                return $"{hk.Display} is already used by another app. Try a different combination.";
+            }
+
+            _settings.CopyFrom(edited);
+            _settings.Save();
+            ThemeManager.Apply(_settings.Theme);
+            _popup?.ApplySettings();
+            StartupManager.Sync(_settings.StartWithWindows);
+            ApplyHotkey(announce: false);
+            return null;
+        }
+
+        /// <summary>Releases the global shortcut while the settings window is recording a new one.</summary>
+        internal void SuspendHotkey() => _hotkeys?.Unregister();
+
+        internal void ResumeHotkey() => ApplyHotkey(announce: false);
 
         internal void OpenSettingsFile()
         {

@@ -1,0 +1,178 @@
+<Window x:Class="Tarjem.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tarjem Settings"
+        Width="480" SizeToContent="Height"
+        ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource CardBg}" Foreground="{DynamicResource Fg}"
+        FontFamily="Segoe UI" FontSize="13" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <Window.Resources>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource SubFg}"/>
+            <Setter Property="Margin" Value="0,20,0,10"/>
+        </Style>
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource Fg}"/>
+        </Style>
+        <Style x:Key="Hint" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Foreground" Value="{DynamicResource SubFg}"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        <Style x:Key="Row" TargetType="Grid">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="24,18,24,20">
+
+        <!-- Footer -->
+        <Grid DockPanel.Dock="Bottom" Margin="0,18,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Style="{StaticResource ToolButton}" HorizontalAlignment="Left" Margin="-9,0,0,0"
+                    ToolTip="Advanced: edit the raw settings file" Click="OpenFile_Click">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE943;" FontFamily="{StaticResource IconFont}" FontSize="12" VerticalAlignment="Center" Margin="0,1,6,0"/>
+                    <TextBlock Text="settings.json" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="Cancel" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" IsCancel="True" Click="Cancel_Click"/>
+                <Button x:Name="SaveBtn" Content="Save" Style="{StaticResource PrimaryButton}" Click="Save_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <Border x:Name="ErrorBar" DockPanel.Dock="Bottom" Visibility="Collapsed" Margin="0,14,0,0"
+                CornerRadius="6" Padding="10,7" Background="{DynamicResource BoxBg}"
+                BorderBrush="{DynamicResource ErrorFg}" BorderThickness="1">
+            <TextBlock x:Name="ErrorText" Foreground="{DynamicResource ErrorFg}" TextWrapping="Wrap" FontSize="12"/>
+        </Border>
+
+        <StackPanel>
+            <!-- Invisible focus target used to end hotkey recording -->
+            <Border x:Name="FocusSink" Focusable="True" Width="0" Height="0" FocusVisualStyle="{x:Null}"/>
+
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal">
+                <Image x:Name="HeaderIcon" Width="34" Height="34" VerticalAlignment="Center"
+                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="Tarjem" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="Select text anywhere, press the shortcut, get the translation."
+                               Style="{StaticResource Hint}"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- SHORTCUT -->
+            <TextBlock Text="SHORTCUT" Style="{StaticResource SectionTitle}"/>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Translate selection" Style="{StaticResource Label}"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <TextBox x:Name="HotkeyBox" Style="{StaticResource HotkeyBox}" Width="190"
+                             ToolTip="Click, then press the new key combination"/>
+                    <Button Style="{StaticResource IconButton}" Content="&#xE777;" Width="32" Height="32" Margin="4,0,0,0"
+                            ToolTip="Reset to Ctrl+Alt+T" Click="ResetHotkey_Click"/>
+                </StackPanel>
+            </Grid>
+            <TextBlock x:Name="HotkeyHint" Style="{StaticResource Hint}" Margin="0,-4,0,12"
+                       Text="Click the box and press a combination, e.g. Ctrl+Alt+T or Alt+Q. Esc cancels."/>
+            <CheckBox x:Name="EnabledSwitch" Style="{StaticResource Switch}" Content="Shortcut enabled"/>
+
+            <!-- TRANSLATION -->
+            <TextBlock Text="TRANSLATION" Style="{StaticResource SectionTitle}"/>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Arabic text  →" Style="{StaticResource Label}"/>
+                <ComboBox x:Name="ArabicTargetBox" Grid.Column="1" Style="{StaticResource FlatCombo}" Width="226"/>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Any other language  →" Style="{StaticResource Label}"/>
+                <ComboBox x:Name="OtherTargetBox" Grid.Column="1" Style="{StaticResource FlatCombo}" Width="226"/>
+            </Grid>
+
+            <!-- POPUP -->
+            <TextBlock Text="POPUP" Style="{StaticResource SectionTitle}"/>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Open" Style="{StaticResource Label}"/>
+                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="AnchorSelection" GroupName="Anchor" Style="{StaticResource Segment}" Content="Under the selection"/>
+                        <RadioButton x:Name="AnchorCursor" GroupName="Anchor" Style="{StaticResource Segment}" Content="At the mouse"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Width" Style="{StaticResource Label}"/>
+                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="WidthCompact" GroupName="Width" Style="{StaticResource Segment}" Content="Compact"/>
+                        <RadioButton x:Name="WidthNormal" GroupName="Width" Style="{StaticResource Segment}" Content="Normal"/>
+                        <RadioButton x:Name="WidthWide" GroupName="Width" Style="{StaticResource Segment}" Content="Wide"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Translation text size" Style="{StaticResource Label}"/>
+                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Style="{StaticResource IconButton}" Content="&#xE738;" Click="FontDown_Click" ToolTip="Smaller"/>
+                        <TextBlock x:Name="FontSizeText" Width="36" TextAlignment="Center" VerticalAlignment="Center"
+                                   FontWeight="SemiBold" FontSize="12.5"/>
+                        <Button Style="{StaticResource IconButton}" Content="&#xE710;" Click="FontUp_Click" ToolTip="Larger"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Grid Style="{StaticResource Row}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Theme" Style="{StaticResource Label}"/>
+                <Border Grid.Column="1" Style="{StaticResource SegmentGroup}">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="ThemeSystem" GroupName="Theme" Style="{StaticResource Segment}" Content="System" Checked="Theme_Checked"/>
+                        <RadioButton x:Name="ThemeDark" GroupName="Theme" Style="{StaticResource Segment}" Content="Dark" Checked="Theme_Checked"/>
+                        <RadioButton x:Name="ThemeLight" GroupName="Theme" Style="{StaticResource Segment}" Content="Light" Checked="Theme_Checked"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <CheckBox x:Name="ShowOriginalSwitch" Style="{StaticResource Switch}" Content="Show the original text above the translation"/>
+
+            <!-- BEHAVIOR -->
+            <TextBlock Text="BEHAVIOR" Style="{StaticResource SectionTitle}"/>
+            <CheckBox x:Name="RestoreClipboardSwitch" Style="{StaticResource Switch}" Content="Put my clipboard back after grabbing the selection"/>
+            <CheckBox x:Name="StartupSwitch" Style="{StaticResource Switch}" Content="Start with Windows" Margin="0"/>
+        </StackPanel>
+    </DockPanel>
+</Window>

@@ -31,6 +31,26 @@ namespace Tarjem.Interop
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool GetGUIThreadInfo(uint idThread, ref GUITHREADINFO lpgui);
+
+        [DllImport("user32.dll")]
+        public static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
+
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
+
+        /// <summary>Dark / light native title bar (Windows 10 20H1+ and 11).</summary>
+        public static void SetDarkTitleBar(IntPtr hwnd, bool dark)
+        {
+            int v = dark ? 1 : 0;
+            try { DwmSetWindowAttribute(hwnd, 20 /* DWMWA_USE_IMMERSIVE_DARK_MODE */, ref v, sizeof(int)); }
+            catch { /* older Windows */ }
+        }
+
         public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
         public const uint SWP_NOSIZE = 0x0001;
         public const uint SWP_NOACTIVATE = 0x0010;
@@ -130,7 +150,20 @@ namespace Tarjem.Interop
         public struct POINT { public int X; public int Y; }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct RECT { public int Left, Top, Right, Bottom; }
+        public struct RECT
+        {
+            public int Left, Top, Right, Bottom;
+            public RECT(int l, int t, int r, int b) { Left = l; Top = t; Right = r; Bottom = b; }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct GUITHREADINFO
+        {
+            public int cbSize;
+            public uint flags;
+            public IntPtr hwndActive, hwndFocus, hwndCapture, hwndMenuOwner, hwndMoveSize, hwndCaret;
+            public RECT rcCaret;
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         private struct INPUT

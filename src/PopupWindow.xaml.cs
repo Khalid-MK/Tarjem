@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Tarjem.Interop;
 using Tarjem.Services;
@@ -13,13 +14,16 @@ namespace Tarjem
 {
     public partial class PopupWindow : Window
     {
-        private const string PinGlyph = "\uE718", PinnedGlyph = "\uE840";
+        private const string PinGlyph = "", PinnedGlyph = "";
+        private const double ShadowMargin = 14;   // must match Card's Margin in XAML
+        private const double Gap = 6;             // space between the text and the card
 
         private readonly AppSettings _settings;
         private readonly DispatcherTimer _statusTimer;
 
         private IntPtr _targetHwnd;
-        private Native.POINT _anchor;
+        private Native.POINT _cursor;
+        private Native.RECT? _selection;   // screen bounds of the selected text, when known
         private string _targetLang = "ar";
         private bool _autoTarget = true;   // false once the user flips direction manually
         private bool _pinned, _editing, _userMoved, _suppressHide;
@@ -40,6 +44,14 @@ namespace Tarjem
             PreviewKeyDown += OnPreviewKeyDown;
             SourceBox.TextChanged += (_, _) => ApplyDirection(SourceBox, LanguageDetector.IsArabicDominant(SourceBox.Text));
 
+            // The text boxes swallow the wheel even when they can't scroll; route it to the outer viewer.
+            Body.PreviewMouseWheel += (_, e) =>
+            {
+                if (Body.ScrollableHeight <= 0) return;
+                Body.ScrollToVerticalOffset(Body.VerticalOffset - e.Delta / 3.0);
+                e.Handled = true;
+            };
+
             Header.MouseLeftButtonDown += (_, e) =>
             {
                 if (e.ButtonState != MouseButtonState.Pressed) return;
@@ -50,15 +62,21 @@ namespace Tarjem
 
         public IntPtr Handle => new WindowInteropHelper(this).EnsureHandle();
 
-        public void ApplySettings() => TranslationBox.FontSize = _settings.FontSize;
+        public void ApplySettings()
+        {
+            TranslationBox.FontSize = _settings.FontSize;
+            Width = Math.Clamp(_settings.PopupWidth, 300, 900) + ShadowMargin * 2;
+            UpdateSourceVisibility();
+        }
 
         // ---- Entry points -----------------------------------------------------
 
         /// <summary>Translate text that was selected in another window.</summary>
-        internal void OpenWithText(string text, IntPtr sourceWindow, Native.POINT anchor)
+        internal void OpenWithText(string text, IntPtr sourceWindow, Native.POINT cursor, Native.RECT? selection)
         {
             _targetHwnd = sourceWindow;
-            _anchor = anchor;
+            _cursor = cursor;
+            _selection = selection;
             _userMoved = false;
             _autoTarget = true;
             SetEditing(false);
@@ -74,10 +92,11 @@ namespace Tarjem
         }
 
         /// <summary>Empty popup to type / paste text into (tray click, or hotkey with no selection).</summary>
-        internal void OpenManual(Native.POINT anchor, string? hint)
+        internal void OpenManual(Native.POINT cursor, string? hint)
         {
             _targetHwnd = IntPtr.Zero;
-            _anchor = anchor;
+            _cursor = cursor;
+            _selection = null;
             _userMoved = false;
             _autoTarget = true;
             _cts?.Cancel();
@@ -115,7 +134,7 @@ namespace Tarjem
 
                 TranslationBox.Text = result.Text;
                 ApplyDirection(TranslationBox, LanguageDetector.IsRtl(_targetLang));
-                TranslationBox.ScrollToHome();
+                Body.ScrollToHome();
                 SetLangLabel(result.SourceLang);
             }
             catch (Exception ex) when (!cts.IsCancellationRequested)
@@ -188,6 +207,12 @@ namespace Tarjem
             PinBtn.ToolTip = _pinned ? "Pinned — click to unpin" : "Keep open";
         }
 
+        private void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            Hide();
+            ((App)Application.Current).OpenSettings();
+        }
+
         private void Close_Click(object sender, RoutedEventArgs e) => Hide();
 
         private void Edit_Click(object sender, RoutedEventArgs e)
@@ -206,14 +231,17 @@ namespace Tarjem
         {
             _editing = on;
             SourceBox.IsReadOnly = !on;
-            SourceBox.MaxHeight = on ? 140 : 52;
             SourceBox.Padding = on ? new Thickness(6, 4, 6, 4) : new Thickness(0);
             if (on) SourceBox.SetResourceReference(BackgroundProperty, "BoxBg");
             else SourceBox.ClearValue(BackgroundProperty);
             SourceBox.SetResourceReference(ForegroundProperty, on ? "Fg" : "SubFg");
             TranslateBtn.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
             Highlight(EditBtn, on);
+            UpdateSourceVisibility();
         }
+
+        private void UpdateSourceVisibility() =>
+            SourceBox.Visibility = _editing || _settings.ShowOriginal ? Visibility.Visible : Visibility.Collapsed;
 
         private static void Highlight(Button b, bool on)
         {
@@ -264,14 +292,19 @@ namespace Tarjem
                 Left = -32000;
                 Top = -32000;
                 Show();
-                UpdateLayout();
             }
             Place();
+            UpdateLayout();
+            Place();          // second pass: correct size/DPI now that we're on the right monitor
             Activate();
             Native.SetForegroundWindow(Handle);
         }
 
-        /// <summary>Put the popup just below-right of the cursor, kept inside the monitor's work area.</summary>
+        /// <summary>
+        /// Opens the card just under the selected text (or under the mouse when the
+        /// selection's position isn't known), flipping above it when there's no room,
+        /// and keeps it inside the monitor's work area.
+        /// </summary>
         private void Place()
         {
             IntPtr h = Handle;
@@ -279,14 +312,35 @@ namespace Tarjem
             int w = r.Right - r.Left, ht = r.Bottom - r.Top;
             if (w <= 0 || ht <= 0) return;
 
-            var wa = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point(_anchor.X, _anchor.Y)).WorkingArea;
+            // What the card should hug, in physical pixels.
+            Native.RECT target = _selection ?? new Native.RECT(_cursor.X, _cursor.Y - 10, _cursor.X + 1, _cursor.Y + 14);
 
-            int x = _anchor.X - 6;           // the 14px shadow margin makes the card sit right under the cursor
-            int y = _anchor.Y + 8;
-            if (y + ht > wa.Bottom) y = _anchor.Y - ht - 2;  // not enough room below: open above
-            if (x + w > wa.Right) x = wa.Right - w;
-            if (x < wa.Left) x = wa.Left;
-            if (y < wa.Top) y = wa.Top;
+            var probe = _selection.HasValue
+                ? new System.Drawing.Point(target.Left, target.Bottom)
+                : new System.Drawing.Point(_cursor.X, _cursor.Y);
+            var wa = System.Windows.Forms.Screen.FromPoint(probe).WorkingArea;
+
+            double scale = VisualTreeHelper.GetDpi(this).DpiScaleY;
+            int margin = (int)Math.Round(ShadowMargin * scale);
+            int gap = (int)Math.Round(Gap * scale);
+
+            // Never taller than the screen: past that, the body scrolls as one block.
+            double maxBody = Math.Max(120, wa.Height / scale - 150);
+            if (Math.Abs(Body.MaxHeight - maxBody) > 1) Body.MaxHeight = maxBody;
+
+            // Card's top-left sits at (target.Left, target.Bottom + gap); the window is `margin` bigger on each side.
+            int x = target.Left - margin;
+            int y = target.Bottom + gap - margin;
+
+            if (y + ht - margin > wa.Bottom)                    // no room below
+            {
+                int above = target.Top - gap - ht + margin;     // card's bottom just above the text
+                y = above + margin >= wa.Top ? above : wa.Bottom - ht + margin;
+            }
+
+            x = Math.Min(x, wa.Right - w + margin);
+            x = Math.Max(x, wa.Left - margin);
+            y = Math.Max(y, wa.Top - margin);
 
             Native.SetWindowPos(h, Native.HWND_TOPMOST, x, y, 0, 0, Native.SWP_NOSIZE | Native.SWP_NOACTIVATE);
         }

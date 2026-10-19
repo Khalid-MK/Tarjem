@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
@@ -22,13 +23,20 @@ namespace Tarjem.Services
         public double FontSize { get; set; } = 15;
         /// <summary>"system", "dark" or "light".</summary>
         public string Theme { get; set; } = "system";
+        /// <summary>"selection" = open under the selected text, "cursor" = open at the mouse.</summary>
+        public string AnchorMode { get; set; } = "selection";
+        /// <summary>Width of the popup card in DIPs (360 / 420 / 520 in the settings UI).</summary>
+        public double PopupWidth { get; set; } = 420;
+        /// <summary>Show the original text above the translation.</summary>
+        public bool ShowOriginal { get; set; } = true;
 
         private static readonly JsonSerializerOptions Json = new()
         {
             WriteIndented = true,
             ReadCommentHandling = JsonCommentHandling.Skip,
             AllowTrailingCommas = true,
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // keep "Ctrl+Alt+T" readable
         };
 
         public static string Folder =>
@@ -67,6 +75,14 @@ namespace Tarjem.Services
             Hotkey = o.Hotkey; Enabled = o.Enabled; RestoreClipboard = o.RestoreClipboard;
             StartWithWindows = o.StartWithWindows; ArabicTarget = o.ArabicTarget;
             OtherTarget = o.OtherTarget; FontSize = o.FontSize; Theme = o.Theme;
+            AnchorMode = o.AnchorMode; PopupWidth = o.PopupWidth; ShowOriginal = o.ShowOriginal;
+        }
+
+        public AppSettings Clone()
+        {
+            var c = new AppSettings();
+            c.CopyFrom(this);
+            return c;
         }
     }
 
@@ -92,11 +108,14 @@ namespace Tarjem.Services
 
     internal static class ThemeManager
     {
+        public static bool IsDark { get; private set; } = true;
+
         public static void Apply(string mode)
         {
             bool light = mode.Equals("light", StringComparison.OrdinalIgnoreCase) ||
                          (mode.Equals("system", StringComparison.OrdinalIgnoreCase) && SystemUsesLightTheme());
 
+            IsDark = !light;
             var r = Application.Current.Resources;
             if (light)
             {
@@ -107,7 +126,9 @@ namespace Tarjem.Services
                 Set(r, "HoverBg", "#EEF1F4");
                 Set(r, "PressBg", "#E1E5EA");
                 Set(r, "Accent", "#0E8A72");
+                Set(r, "OnAccent", "#FFFFFF");
                 Set(r, "BoxBg", "#F3F5F7");
+                Set(r, "SegmentOn", "#FFFFFF");
                 Set(r, "ErrorFg", "#C4362C");
             }
             else
@@ -119,7 +140,9 @@ namespace Tarjem.Services
                 Set(r, "HoverBg", "#2D3238");
                 Set(r, "PressBg", "#373D44");
                 Set(r, "Accent", "#4CC4A7");
+                Set(r, "OnAccent", "#0B1F1A");
                 Set(r, "BoxBg", "#17191C");
+                Set(r, "SegmentOn", "#343A41");
                 Set(r, "ErrorFg", "#FF7B70");
             }
         }

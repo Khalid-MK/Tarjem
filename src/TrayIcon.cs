@@ -31,8 +31,7 @@ namespace Tarjem
                 _restore,
                 _startup,
                 new WF.ToolStripSeparator(),
-                new WF.ToolStripMenuItem("Edit settings…", null, (_, _) => app.OpenSettingsFile()),
-                new WF.ToolStripMenuItem("Reload settings", null, (_, _) => app.ReloadSettings()),
+                new WF.ToolStripMenuItem("Settings…", null, (_, _) => app.OpenSettings()),
                 new WF.ToolStripSeparator(),
                 new WF.ToolStripMenuItem("Exit", null, (_, _) => app.ExitApp())
             });
